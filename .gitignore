@@ -2,3 +2,4 @@ oauth2*
 dist/
 data.db
 __debug_*
+config.json

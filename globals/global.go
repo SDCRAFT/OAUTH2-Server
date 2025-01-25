@@ -5,37 +5,10 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"log"
+
+	"github.com/sirupsen/logrus"
+	"sdcraft.fun/oauth2/models"
 )
-
-func generateRSAKeys() ([]byte, []byte) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		log.Fatalf("Failed to generate private key: %v", err)
-	}
-
-	privateKeyPEM := pem.EncodeToMemory(
-		&pem.Block{
-			Type:  "RSA PRIVATE KEY",
-			Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
-		},
-	)
-
-	publicKeyPEM := pem.EncodeToMemory(
-		&pem.Block{
-			Type:  "RSA PUBLIC KEY",
-			Bytes: x509.MarshalPKCS1PublicKey(&privateKey.PublicKey),
-		},
-	)
-
-	return publicKeyPEM, privateKeyPEM
-}
-
-func init() {
-	pub, pri := generateRSAKeys()
-	RSAPublicKey = string(pub)
-	RSAPrivateKey = pri
-}
 
 var (
 	Hash       string = ""
@@ -46,4 +19,39 @@ var (
 var (
 	RSAPublicKey  string
 	RSAPrivateKey []byte
+	Config        models.Config = models.NewConfig()
 )
+
+func generateRSAKeys() ([]byte, []byte) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		logrus.Fatalf("Failed to generate private key: %v", err)
+	}
+
+	privateKeyPKCS1 := x509.MarshalPKCS1PrivateKey(privateKey)
+
+	if err != nil {
+		logrus.Fatalf("Failed to generate private key: %v", err)
+	}
+
+	publicKeyD, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
+
+	if err != nil {
+		logrus.Fatalf("Failed to generate private key: %v", err)
+	}
+
+	publicKeyPEM := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: publicKeyD,
+		},
+	)
+
+	return publicKeyPEM, privateKeyPKCS1
+}
+
+func init() {
+	pub, pri := generateRSAKeys()
+	RSAPublicKey = string(pub)
+	RSAPrivateKey = pri
+}
