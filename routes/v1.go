@@ -9,7 +9,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"sdcraft.fun/oauth2/database"
 	"sdcraft.fun/oauth2/globals"
+	"sdcraft.fun/oauth2/models"
+	"sdcraft.fun/oauth2/utils"
 )
 
 type registerRequest struct {
@@ -18,7 +21,11 @@ type registerRequest struct {
 	Email    string `form:"email"`
 }
 
-var emailRegex = regexp.MustCompile(`^\w+([-+.]?\w+)*@\w+([-.]?\w+)*\.\w+([-.]?\w+)*$`)
+var (
+	emailRegex = regexp.MustCompile(`^\w+([-+.]?\w+)*@\w+([-.]?\w+)*\.\w+([-.]?\w+)*$`)
+	//passwordRegex = regexp.MustCompile(`^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,18}$`)
+	nameRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{5,20}$`)
+)
 
 func Register_v1_routes(g *gin.RouterGroup) {
 	g.GET("/publicKey", func(ctx *gin.Context) {
@@ -35,15 +42,24 @@ func registerEndpoint(ctx *gin.Context) {
 	if err := ctx.ShouldBindBodyWithJSON(&req); err != nil {
 		logrus.Print(err.Error())
 		ctx.JSON(400, gin.H{
-			"code":  400,
-			"error": "Invalid request",
+			"code":    400,
+			"message": "Invalid request",
 		})
 		return
 	}
 	if !emailRegex.MatchString(req.Email) {
 		ctx.JSON(400, gin.H{
-			"code":  400,
-			"error": "Invalid email",
+			"code":    400,
+			"message": "Invalid email",
+		})
+		return
+	}
+
+	if !nameRegex.MatchString(req.Username) {
+		println(req.Username)
+		ctx.JSON(400, gin.H{
+			"code":    400,
+			"message": "Invalid username",
 		})
 		return
 	}
@@ -69,18 +85,27 @@ func registerEndpoint(ctx *gin.Context) {
 		return
 	}
 
-	decryptedData, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, encryptedData)
+	binaryPassword, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, encryptedData)
 	if err != nil {
-		logrus.Errorf("%v", err)
 		ctx.JSON(400, gin.H{
 			"code":    400,
 			"message": "Unexpected Exception occurred when decode password",
 		})
 		return
 	}
-	if string(decryptedData) == "1" {
-
+	var pw = string(binaryPassword)
+	if !utils.ValidatePassword(pw) {
+		ctx.JSON(400, gin.H{
+			"code":    400,
+			"message": "Invaild password",
+		})
+		return
 	}
+	database.DB.Create(&models.User{
+		Name:     req.Username,
+		Email:    req.Email,
+		Password: utils.HashPassword(pw, []byte(globals.Generate.SALT)),
+	})
 	ctx.JSON(200, gin.H{
 		"code":    200,
 		"message": "Success",

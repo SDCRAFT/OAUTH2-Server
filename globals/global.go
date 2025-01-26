@@ -19,7 +19,8 @@ var (
 var (
 	RSAPublicKey  string
 	RSAPrivateKey []byte
-	Config        models.Config = models.NewConfig()
+	Config        models.Config   = models.NewConfig()
+	Generate      models.Generate = models.NewGenerate()
 )
 
 func generateRSAKeys() ([]byte, []byte) {

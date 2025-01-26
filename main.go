@@ -20,6 +20,7 @@ func readConfig() {
 	v.AddConfigPath(".")
 	v.SetConfigType("json")
 	v.SetDefault("Config", &globals.Config)
+	v.SetDefault("Generate", &globals.Generate)
 	err := v.ReadInConfig()
 	if err != nil {
 		e := v.SafeWriteConfig()
@@ -31,7 +32,11 @@ func readConfig() {
 	}
 	err = v.UnmarshalKey("Config", &globals.Config)
 	if err != nil {
-		logrus.Fatalf("Failed to  config file: %v", err)
+		logrus.Fatalf("Failed to unmarshal config file: %v", err)
+	}
+	err = v.UnmarshalKey("Config", &globals.Generate)
+	if err != nil {
+		logrus.Fatalf("Failed to unmarshal config file: %v", err)
 	}
 }
 
