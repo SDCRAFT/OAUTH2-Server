@@ -40,26 +40,24 @@ func Register_v1_routes(g *gin.RouterGroup) {
 func registerEndpoint(ctx *gin.Context) {
 	var req registerRequest
 	if err := ctx.ShouldBindBodyWithJSON(&req); err != nil {
-		logrus.Print(err.Error())
 		ctx.JSON(400, gin.H{
-			"code":    400,
-			"message": "Invalid request",
+			"code":    -401,
+			"message": "Invalid request.",
 		})
 		return
 	}
 	if !emailRegex.MatchString(req.Email) {
 		ctx.JSON(400, gin.H{
-			"code":    400,
-			"message": "Invalid email",
+			"code":    -402,
+			"message": "Invalid email.",
 		})
 		return
 	}
 
 	if !nameRegex.MatchString(req.Username) {
-		println(req.Username)
 		ctx.JSON(400, gin.H{
-			"code":    400,
-			"message": "Invalid username",
+			"code":    -403,
+			"message": "Invalid username.",
 		})
 		return
 	}
@@ -69,8 +67,8 @@ func registerEndpoint(ctx *gin.Context) {
 	if err != nil {
 		logrus.Errorf("Unexpected Exception occurred when parse RSA prikey, cause: %v", err)
 		ctx.JSON(500, gin.H{
-			"code":    500,
-			"message": "Unexpected Exception occurred when parse RSA prikey",
+			"code":    -500,
+			"message": "Unexpected Exception occurred when parse RSA prikey.",
 		})
 		return
 	}
@@ -79,8 +77,8 @@ func registerEndpoint(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.JSON(400, gin.H{
-			"code":    400,
-			"message": "Unexpected Exception occurred when decode password",
+			"code":    -404,
+			"message": "Unexpected Exception occurred when decode password.",
 		})
 		return
 	}
@@ -88,26 +86,29 @@ func registerEndpoint(ctx *gin.Context) {
 	binaryPassword, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, encryptedData)
 	if err != nil {
 		ctx.JSON(400, gin.H{
-			"code":    400,
-			"message": "Unexpected Exception occurred when decode password",
+			"code":    -404,
+			"message": "Unexpected Exception occurred when decode password.",
 		})
 		return
 	}
 	var pw = string(binaryPassword)
 	if !utils.ValidatePassword(pw) {
 		ctx.JSON(400, gin.H{
-			"code":    400,
-			"message": "Invaild password",
+			"code":    -405,
+			"message": "Invaild password.",
 		})
 		return
 	}
-	database.DB.Create(&models.User{
-		Name:     req.Username,
-		Email:    req.Email,
-		Password: utils.HashPassword(pw, []byte(globals.Generate.SALT)),
-	})
+	tx := database.DB.Create(models.NewUser(req.Username, req.Email, utils.HashPassword(pw, []byte(globals.Generate.SALT))))
+	if tx.Error != nil {
+		ctx.JSON(400, gin.H{
+			"code":    -406,
+			"message": "Failed to create user. Is the email or username used?",
+		})
+		return
+	}
 	ctx.JSON(200, gin.H{
 		"code":    200,
-		"message": "Success",
+		"message": "Success!",
 	})
 }

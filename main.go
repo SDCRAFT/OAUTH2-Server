@@ -54,7 +54,7 @@ func (f *PrettyFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 }
 
 func main() {
-	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetLevel(logrus.TraceLevel)
 	logrus.SetFormatter(&PrettyFormatter{})
 	logrus.Info("Starting...")
 	gin.SetMode(gin.ReleaseMode)
@@ -86,11 +86,11 @@ func LoggerMiddleware() gin.HandlerFunc {
 
 		logrus.WithFields(logrus.Fields{"name": "GIN"}).
 			Info(utils.Map2String(map[string]interface{}{
-				"code":    statusCode,
-				"latency": latencyTime,
-				"ip":      clientIP,
-				"method":  reqMethod,
-				"uri":     reqUri,
+				"code":     statusCode,
+				"duration": latencyTime,
+				"ip":       clientIP,
+				"method":   reqMethod,
+				"uri":      reqUri,
 			}))
 	}
 }
