@@ -11,7 +11,7 @@ import (
 
 const specialChars = "!@#$%^&*_+-=[]{}|<>?/~"
 
-func Map2String(m map[string]interface{}) string {
+func Map2String(m map[string]interface{}, split string) string {
 	keys := make([]string, 0, len(m))
 	for key := range m {
 		keys = append(keys, key)
@@ -20,7 +20,7 @@ func Map2String(m map[string]interface{}) string {
 	var msg strings.Builder
 	for i, key := range keys {
 		if i > 0 {
-			msg.WriteString(" ")
+			msg.WriteString(split)
 		}
 		msg.WriteString(fmt.Sprintf("%s=%v", key, m[key]))
 	}

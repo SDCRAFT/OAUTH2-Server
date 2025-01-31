@@ -34,7 +34,7 @@ func readConfig() {
 	if err != nil {
 		logrus.Fatalf("Failed to unmarshal config file: %v", err)
 	}
-	err = v.UnmarshalKey("Config", &globals.Generate)
+	err = v.UnmarshalKey("Generate", &globals.Generate)
 	if err != nil {
 		logrus.Fatalf("Failed to unmarshal config file: %v", err)
 	}
@@ -91,6 +91,6 @@ func LoggerMiddleware() gin.HandlerFunc {
 				"ip":       clientIP,
 				"method":   reqMethod,
 				"uri":      reqUri,
-			}))
+			}, " "))
 	}
 }

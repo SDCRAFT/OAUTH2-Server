@@ -5,9 +5,11 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"image/color"
 	"regexp"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mojocn/base64Captcha"
 	"github.com/sirupsen/logrus"
 	"sdcraft.fun/oauth2/database"
 	"sdcraft.fun/oauth2/globals"
@@ -15,17 +17,33 @@ import (
 	"sdcraft.fun/oauth2/utils"
 )
 
+type captchaPayload struct {
+	ChallengeID string `json:"challenge_id"`
+	Answer      string `json:"answer"`
+}
+
 type registerRequest struct {
-	Username string `form:"username"`
-	Password string `form:"password"`
-	Email    string `form:"email"`
+	Username string         `form:"username"`
+	Password string         `form:"password"`
+	Email    string         `form:"email"`
+	Captcha  captchaPayload `form:"captcha"`
 }
 
 var (
 	emailRegex = regexp.MustCompile(`^\w+([-+.]?\w+)*@\w+([-.]?\w+)*\.\w+([-.]?\w+)*$`)
 	//passwordRegex = regexp.MustCompile(`^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,18}$`)
-	nameRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{5,20}$`)
+	nameRegex      = regexp.MustCompile(`^[a-zA-Z0-9_]{5,20}$`)
+	captchaStroage *utils.CaptchaCache
+	BgColor        = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 )
+
+func init() {
+	var err error
+	captchaStroage, err = utils.NewCaptchaCache()
+	if err != nil {
+		logrus.Fatalf("Failed to create captcha stroage: %v", err)
+	}
+}
 
 func Register_v1_routes(g *gin.RouterGroup) {
 	g.GET("/publicKey", func(ctx *gin.Context) {
@@ -34,11 +52,37 @@ func Register_v1_routes(g *gin.RouterGroup) {
 			"key":  globals.RSAPublicKey,
 		})
 	})
+	g.GET("/captcha", func(ctx *gin.Context) {
+		driver := base64Captcha.NewDriverMath(
+			40,
+			120,
+			10,
+			5,
+			&BgColor,
+			utils.DefaultEmbeddedFonts,
+			[]string{"JetBrainsMono-Bold.ttf"},
+		)
+		c := base64Captcha.NewCaptcha(driver, captchaStroage)
+		id, b64s, _, err := c.Generate()
+		if err != nil {
+			ctx.JSON(500, gin.H{
+				"code":    -500,
+				"message": "Failed to generate captcha.",
+			})
+			return
+		}
+		ctx.JSON(200, gin.H{
+			"code":   200,
+			"id":     id,
+			"base64": b64s,
+		})
+	})
 	g.POST("/register", registerEndpoint)
 }
 
 func registerEndpoint(ctx *gin.Context) {
 	var req registerRequest
+	//TODO Captcha Verify
 	if err := ctx.ShouldBindBodyWithJSON(&req); err != nil {
 		ctx.JSON(400, gin.H{
 			"code":    -401,
@@ -61,9 +105,7 @@ func registerEndpoint(ctx *gin.Context) {
 		})
 		return
 	}
-
 	privateKey, err := x509.ParsePKCS1PrivateKey(globals.RSAPrivateKey)
-
 	if err != nil {
 		logrus.Errorf("Unexpected Exception occurred when parse RSA prikey, cause: %v", err)
 		ctx.JSON(500, gin.H{
@@ -72,9 +114,7 @@ func registerEndpoint(ctx *gin.Context) {
 		})
 		return
 	}
-
 	encryptedData, err := base64.StdEncoding.DecodeString(req.Password)
-
 	if err != nil {
 		ctx.JSON(400, gin.H{
 			"code":    -404,
@@ -82,7 +122,6 @@ func registerEndpoint(ctx *gin.Context) {
 		})
 		return
 	}
-
 	binaryPassword, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, encryptedData)
 	if err != nil {
 		ctx.JSON(400, gin.H{
@@ -99,7 +138,8 @@ func registerEndpoint(ctx *gin.Context) {
 		})
 		return
 	}
-	tx := database.DB.Create(models.NewUser(req.Username, req.Email, utils.HashPassword(pw, []byte(globals.Generate.SALT))))
+	u := models.NewUser(req.Username, req.Email, utils.HashPassword(pw, []byte(globals.Generate.SALT)))
+	tx := database.DB.Create(u)
 	if tx.Error != nil {
 		ctx.JSON(400, gin.H{
 			"code":    -406,
@@ -107,8 +147,18 @@ func registerEndpoint(ctx *gin.Context) {
 		})
 		return
 	}
+	token, err := utils.Sign(u.ID, privateKey)
+	if err != nil {
+		logrus.Errorf("Unexpected Exception occurred when sign token, cause: %v", err)
+		ctx.JSON(500, gin.H{
+			"code":    -407,
+			"message": "Unexpected Exception occurred when sign token.",
+		})
+		return
+	}
 	ctx.JSON(200, gin.H{
 		"code":    200,
 		"message": "Success!",
+		"token":   token,
 	})
 }
