@@ -11,17 +11,11 @@
       },
       "isBackground": true,
       "problemMatcher": {
-        "pattern": [
-          {
-            "regexp": "\\[([^\\]]+)\\](?:\\[(\\d+)\\])?\\[(trace|error)\\] (.+)",
-            "file": 1,
-            "location": 2,
-            "message": 3
-          }
-        ]
+        "pattern": {
+          "regexp": "\\[.*\\](\\[.*\\]|)\\[(error|fatal)\\] .*"
+        }
       },
       "detail": "启动后端服务",
-      "promptOnClose": true
     }
   ]
 }

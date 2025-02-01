@@ -15,8 +15,8 @@
       "name": "Vue Dev",
       "request": "launch",
       "cwd": "${workspaceRoot}/frontend",
-      "runtimeArgs": ["run-script", "dev", "--open"],
-      "runtimeExecutable": "npm",
+      "runtimeArgs": ["dev", "--open"],
+      "runtimeExecutable": "yarn",
       "skipFiles": ["<node_internals>/**"],
       "type": "node",
       "preLaunchTask": "Start Backend"

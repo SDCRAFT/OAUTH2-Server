@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	database "sdcraft.fun/oauth2/database"
+	"sdcraft.fun/oauth2/frontend"
 	"sdcraft.fun/oauth2/globals"
 	Routes "sdcraft.fun/oauth2/routes"
 	"sdcraft.fun/oauth2/utils"
@@ -62,6 +64,7 @@ func main() {
 	defer viper.SafeWriteConfig()
 	database.Init()
 	router := gin.New()
+	router.Use(static.Serve("/", static.EmbedFolder(frontend.FS, "dist")))
 	router.Use(gin.Recovery())
 	router.Use(LoggerMiddleware())
 	Routes.Register_v1_routes(router.Group("/api/v1"))
