@@ -8,12 +8,8 @@
 
 version: 2
 
-before:
-  hooks:
-    - go mod tidy
-
 builds:
-  - id: "Oautg2-Server"
+  - id: "Oauth2-Server"
     env:
       - CGO_ENABLED=0
       - GIN_MODE=release
@@ -25,6 +21,11 @@ builds:
     ldflags:
       - "-s -w -X global.version={{.Version}} -X global.hash={{.Commit}} -X global.buildstamp={{.Timestamp}}"
     no_unique_dist_dir: true
+    hooks:
+      pre:
+        - go mod tidy
+        - dir: ./frontend
+          cmd: yarn install && yarn build
 
 archives:
   - format: binary

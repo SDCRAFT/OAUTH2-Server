@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Backend",
+      "type": "shell",
+      "command": "go",
+      "args": ["run", "main.go"],
+      "options": {
+        "cwd": "${workspaceFolder}/"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": "\\[([^\\]]+)\\](?:\\[(\\d+)\\])?\\[(trace|error)\\] (.+)",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          }
+        ]
+      },
+      "detail": "启动后端服务",
+      "promptOnClose": true
+    }
+  ]
+}

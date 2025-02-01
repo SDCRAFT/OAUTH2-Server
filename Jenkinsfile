@@ -1,7 +1,10 @@
 pipeline {
     agent any
 
-    tools { go 'Go1.23.5' }
+    tools { 
+        go 'Go1.23.5' 
+        nodejs 'nodeLTS'
+    }
     
     stages {
         stage('Checkout') {
