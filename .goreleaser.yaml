@@ -15,7 +15,6 @@ builds:
       - GIN_MODE=release
     goos:
       - linux
-      - windows
     goarch:
       - amd64
     ldflags:
@@ -25,7 +24,9 @@ builds:
       pre:
         - go mod tidy
         - dir: ./frontend
-          cmd: yarn install && yarn build
+          cmd: yarn install
+        - dir: ./frontend
+          cmd: yarn build
 
 archives:
   - format: binary

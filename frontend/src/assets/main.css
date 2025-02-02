@@ -1,9 +1,49 @@
-@import './base.css';
+.el-container#main-top {
+  > .el-header {
+    --height-top: 50px;
+    height: var(--height-top);
+    border-bottom: 1px solid var(--el-border-color);
+    transition: border-bottom var(--el-transition-duration);
+    display: flex;
+    > .left {
+      display: flex;
+      align-items: center;
+      height: var(--height-top);
+    }
+    > .right {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      flex-grow: 1;
+      > .el-menu--horizontal {
+        display: flex;
+        transition: border-bottom var(--el-transition-duration);
+        --el-menu-horizontal-height: var(--height-top);
+        background-color: #00000000;
+      }
+      > * {
+        margin-left: 1rem;
+      }
+      > .el-switch {
+        --el-switch-on-color: var(--el-border-color);
+        --el-switch-off-color: var(--el-border-color);
+        --el-switch-border-color: var(--border-color);
+      }
+    }
+  }
+  > .el-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+body {
+  margin: 0;
+  background-color: var(--el-bg-color);  
+  transition: background-color var(--el-transition-duration);
+}
+
+svg.light-icon {
+  color: #606266
 }

@@ -5,9 +5,12 @@
       "label": "Start Backend",
       "type": "shell",
       "command": "go",
-      "args": ["run", "main.go"],
+      "args": [
+        "run",
+        "main.go"
+      ],
       "options": {
-        "cwd": "${workspaceFolder}/"
+        "cwd": "${workspaceFolder}"
       },
       "isBackground": true,
       "problemMatcher": {
@@ -15,7 +18,7 @@
           "regexp": "\\[.*\\](\\[.*\\]|)\\[(error|fatal)\\] .*"
         }
       },
-      "detail": "启动后端服务",
-    }
+      "detail": "启动后端服务"
+    },
   ]
 }
