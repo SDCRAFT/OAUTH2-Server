@@ -10,30 +10,33 @@ import {
   ElMenuItem,
   ElSwitch,
   ElSubMenu,
-  ElAvatar
+  ElAvatar,
+  ElDropdown,
+  ElDropdownMenu,
+  ElDropdownItem
 } from 'element-plus';
 import { Moon, Sunny, UserFilled } from '@element-plus/icons-vue';
-import { useConfigStore } from '@/store'
-const config = useConfigStore()
+import { useDark, useToggle } from '@vueuse/core'
+
+const isDark = useDark({disableTransition: false})
+const toggleDark = useToggle(isDark)
 </script>
 
 <template>
   <div class="common-layout">
     <ElContainer id="main-top" style="height: 100vh;">
       <ElHeader id="main-header">
-        <div class="left">SDCRAFT</div>
-        <div class="right">
+        <div class="left">
+          SDCRAFT
           <ElMenu :default-active="$route.path" router mode="horizontal" :ellipsis="false" :collapse="false">
             <ElMenuItem index="/">Index</ElMenuItem>
-            <ElSubMenu index="/account">
-              <template #title>Account</template>
-              <ElMenuItem index="/signin">Login</ElMenuItem>
-              <ElMenuItem index="2-2">Register</ElMenuItem>
-            </ElSubMenu>
+            <ElMenuItem index="/signin">Login</ElMenuItem>
+            <ElMenuItem index="/signup">Register</ElMenuItem>
           </ElMenu>
+        </div>
+        <div class="right">
           <ElSwitch
-          @change="config.toggleDark()"
-          v-model=" config.dark"
+          v-model="isDark"
           inline-prompt
           >
             <template #active-action>
@@ -43,6 +46,16 @@ const config = useConfigStore()
               <Sunny class="light-icon"></Sunny>
             </template>
           </ElSwitch>
+          <ElDropdown>
+            <ElAvatar :icon="UserFilled"></ElAvatar>
+            <template #dropdown>
+              <ElDropdownMenu>
+                <ElDropdownItem>Sign in</ElDropdownItem>
+                <ElDropdownItem>Sign up</ElDropdownItem>
+                <ElDropdownItem>Profile</ElDropdownItem>
+              </ElDropdownMenu>
+            </template>
+          </ElDropdown>
         </div>
       </ElHeader>
       <ElContainer>
@@ -54,5 +67,3 @@ const config = useConfigStore()
     </ElContainer>
   </div>
 </template>
-<style scoped>
-</style>

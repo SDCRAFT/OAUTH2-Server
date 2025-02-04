@@ -15,6 +15,7 @@ builds:
       - GIN_MODE=release
     goos:
       - linux
+      - windows
     goarch:
       - amd64
     ldflags:
