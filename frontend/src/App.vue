@@ -13,7 +13,8 @@ import {
   ElAvatar,
   ElDropdown,
   ElDropdownMenu,
-  ElDropdownItem
+  ElDropdownItem,
+  ElInput
 } from 'element-plus';
 import { Moon, Sunny, UserFilled } from '@element-plus/icons-vue';
 import { useDark, useToggle } from '@vueuse/core'

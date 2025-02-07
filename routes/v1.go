@@ -49,7 +49,7 @@ func Register_v1_routes(g *gin.RouterGroup) {
 	g.GET("/publicKey", func(ctx *gin.Context) {
 		ctx.JSON(globals.Success, gin.H{
 			"code": globals.Success,
-			"key":  globals.RSAPublicKey,
+			"data": globals.RSAPublicKey,
 		})
 	})
 	g.GET("/captcha", func(ctx *gin.Context) {
@@ -72,9 +72,11 @@ func Register_v1_routes(g *gin.RouterGroup) {
 			return
 		}
 		ctx.JSON(globals.Success, gin.H{
-			"code":   globals.Success,
-			"id":     id,
-			"base64": b64s,
+			"code": globals.Success,
+			"data": gin.H{
+				"id":     id,
+				"base64": b64s,
+			},
 		})
 	})
 	g.POST("/register", CaptchaVerifyMiddleware, registerEndpoint)
@@ -191,6 +193,8 @@ func registerEndpoint(ctx *gin.Context) {
 	ctx.JSON(globals.Success, gin.H{
 		"code":    globals.Success,
 		"message": "Success!",
-		"token":   token,
+		"data": gin.H{
+			"token": token,
+		},
 	})
 }
